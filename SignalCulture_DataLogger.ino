@@ -96,8 +96,7 @@ void loop()
     bSwitchPressed = false;
   }
   if( bLogging )
-    dataFile.println(analogRead(analogPin));
-
+    dataFile.println(analogRead(analogPin));  
 }
 
 //-- set LED pins, add sequential filename
@@ -110,7 +109,7 @@ void beginLogging() {
   
   // The SD Card neesd an all caps filename
    while( true ) {
-     sprintf(filename, "DL%d.txt", fileNum);
+     sprintf(filename, "DATA_%d.txt", fileNum);
      Serial.println(filename);
      if( SD.exists(filename) == false ) {
        dataFile = SD.open(filename, FILE_WRITE);
