@@ -100,40 +100,35 @@ void loop()
 
 }
 
+//-- set LED pins, add sequential filename
 void beginLogging() {
   digitalWrite(greenLED, HIGH);
   digitalWrite(redLED, LOW);
       
-  //-- all this needs to be fixed up for multiple-files
-  /*
-   int fileNum = 1;
-   String beginStr = String("datalog_");
-   String endStr = String(".txt");
-   String numStr;
-   char filename[64];
-   
-   while( true )
-     
-     numStr = String(fileNum);
-     String fileStr = String(beginStr + numStr + endStr); 
-     fileStr.toCharArray(filename, sizeof(filename));
-     
+  char filename[64];
+  int fileNum = 1;
+  
+  // The SD Card neesd an all caps filename
+   while( true ) {
+     sprintf(filename, "DL%d.txt", fileNum);
+     Serial.println(filename);
      if( SD.exists(filename) == false ) {
-       dataFile = SD.open(filename, FILE_WRITE); 
+       dataFile = SD.open(filename, FILE_WRITE);
+       break;
      }
-     */
-    
-     dataFile = SD.open("datalog.txt", FILE_WRITE);
-   if (dataFile) {
-     bLogging = true;  
-   }
+  
+     fileNum++;
+  }
+  
+  if (dataFile) {
+    Serial.println("successfully opened data log");
+     bLogging = true;
+  }  
    else {
     Serial.println("error opening data log");
     bLogging = false;
     bError = true;
-  } 
-  
-  
+  }
 }
 
 void endLogging() {
