@@ -34,6 +34,8 @@ int analogPin = 0;
 
 File dataFile;
 
+unsigned long startMillis = 0;    // subtract from millis() when logging
+
 void setup()
 {
   //-- specify output pins
@@ -95,8 +97,12 @@ void loop()
     
     bSwitchPressed = false;
   }
-  if( bLogging )
-    dataFile.println(analogRead(analogPin));  
+  if( bLogging ) {
+    // we will want to optimize this to write to a buffer and then flush the buffer every few cycles
+    dataFile.print(analogRead(analogPin));  
+    dataFile.print(",");
+    dataFile.println(millis() - startMillis);
+  }
 }
 
 //-- set LED pins, add sequential filename
@@ -107,9 +113,9 @@ void beginLogging() {
   char filename[64];
   int fileNum = 1;
   
-  // The SD Card neesd an all caps filename
+  // The SD Card needs an all caps filename
    while( true ) {
-     sprintf(filename, "DATA_%d.txt", fileNum);
+     sprintf(filename, "DATA_%d.CSV", fileNum);
      Serial.println(filename);
      if( SD.exists(filename) == false ) {
        dataFile = SD.open(filename, FILE_WRITE);
@@ -121,7 +127,13 @@ void beginLogging() {
   
   if (dataFile) {
     Serial.println("successfully opened data log");
+    
+    // write header
+    dataFile.println("value, ms");
+    
      bLogging = true;
+     
+     startMillis = millis();
   }  
    else {
     Serial.println("error opening data log");
