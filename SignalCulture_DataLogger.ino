@@ -10,8 +10,7 @@
   
   We log to RAM and then flush when the buffer is filled.
   
-  Currently, we are not logging timecode.
-  
+  We are logging to microseconds, 1000 micros = 1 millis
  */
 
 #include <SD.h>
@@ -34,7 +33,7 @@ int analogPin = 0;
 
 File dataFile;
 
-unsigned long startMillis = 0;    // subtract from millis() when logging
+unsigned long startMicros = 0;    // subtract from micros() when logging
 
 void setup()
 {
@@ -98,10 +97,10 @@ void loop()
     bSwitchPressed = false;
   }
   if( bLogging ) {
-    // we will want to optimize this to write to a buffer and then flush the buffer every few cycles
+    // we will want to optimize this to write to a buffer and then flush the buffer every few c
     dataFile.print(analogRead(analogPin));  
     dataFile.print(",");
-    dataFile.println(millis() - startMillis);
+    dataFile.println(micros() - startMicros);
   }
 }
 
@@ -133,7 +132,7 @@ void beginLogging() {
     
      bLogging = true;
      
-     startMillis = millis();
+     startMicros = micros();
   }  
    else {
     Serial.println("error opening data log");
