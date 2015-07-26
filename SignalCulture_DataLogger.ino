@@ -38,11 +38,13 @@
   The next issue is that we run out of micros(), so have an overflow problem after about a minute
   We could fix this in code (best solution)
   
-  Could also log for a specified amount of time, using a millis() timer
+  micros() will rollover after 70 minutes, so log timer should be no more than an hour
   
  */
 
 #include <SD.h>
+
+#include "MSTimer.h"
 
 //-- we are using the AdaFruit Data Logging shiueld, so we need pin 10
 const int chipSelect = 10;
@@ -69,6 +71,12 @@ unsigned long startMicros = 0;    // subtract from micros() when logging
 
 int bufferIndex = 0;
 char *buffer;
+
+// Default timer, use UL otherwise it might end up being interpreted as int, which causes overflow problems
+#define DEFAULT_TIMER_DURATION (1000UL * 60UL * 2UL)  // in milliseconds, so start by multiplying by 1000 for readability
+
+// from the MSTimer.h
+MSTimer logTimer;
 
 void setup()
 {
@@ -120,6 +128,8 @@ void setup()
   
   //-- INT0  is pin2
   attachInterrupt(0, switchPressed, RISING);
+  
+  logTimer.setTimer(DEFAULT_TIMER_DURATION);
 }
 
 //-- main logging loop, with attempts to be as efficient as possible
@@ -148,12 +158,17 @@ void loop()
     sprintf(buffer + bufferIndex, "%d,%lu\n", analogRead(analogPin),micros() - startMicros);
     bufferIndex += strlen(buffer+bufferIndex);
     
-    // check to see if we are about to overflow the vuffer
+    // check to see if we are about to overflow the buffer
     if( bufferIndex > BUFFER_SIZE - MAX_LINE_SIZE ) {
       bufferIndex = 0;
  
       // buffer of data
       dataFile.print(buffer+bufferIndex);  // see if the entire thing prints out
+    }
+    
+    if( logTimer.isExpired() ) {
+      endLogging();
+      Serial.println("Logging timer expired, all done");
     }
   }
 }
@@ -169,8 +184,9 @@ void beginLogging() {
   // The SD Card needs an all caps filename
    while( true ) {
      sprintf(filename, "DATA_%d.CSV", fileNum);
-     Serial.println(filename);
      if( SD.exists(filename) == false ) {
+       Serial.print("Opening new file: ");
+       Serial.println(filename);
        dataFile = SD.open(filename, FILE_WRITE);
        break;
      }
@@ -187,6 +203,7 @@ void beginLogging() {
      bLogging = true;
      bufferIndex = 0;
      
+     logTimer.start();
      startMicros = micros();
   }  
    else {
@@ -204,9 +221,8 @@ void endLogging() {
   dataFile.close();
   bLogging = false;
   digitalWrite(greenLED, LOW);
-   digitalWrite(redLED, HIGH);
+  digitalWrite(redLED, HIGH);
 }
-
 
 //-- interrupt routine, set flag
 void switchPressed() {
