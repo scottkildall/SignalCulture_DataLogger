@@ -1,60 +1,38 @@
-MIS Content Manager
+Signal Culture Data Logger
 written by Scott Kildall
-for the Exploratorium
-skildall@exploratorium.edu
 
-**Configuration**
-Mac and Windows, should cross-compile
-For Mac, use JRE 1.6
-For Win, use JRE 1.8
-
-** BitBucket Configuration in Eclipse **
-http://crunchify.com/how-to-configure-bitbucket-git-repository-in-you-eclipse/
-
-**Overview**
-This is a Java application, which uses the Processing libraries to display content related to live microscopy samples from the Bio lab at the Exploratorium. Samples might include, but are not limited to ZebraFish, Stem Cells and Amoeba.
-
-Installing Java for Windows
-This requires the JRE (Java Runtime Environment)
-Java Install for Windows
-http://www.oracle.com/technetwork/java/javase/downloads/index.html
-Java SE 8u45
-Click on JRE
-Download Windows x64 for the .exe file
-After downloading, run the installer
-
-**Exporting**
-The application will be a runnable JAR. The host machine requires JRE (Java Runtime Environment) for this to work properly. JDK is only used for development, so this is note needed.
-
-To export a JAR in Eclipse:
-File->Export
-Under Java, choose Runnable JAR, click NEXT
-
-**Playig QuickTime videos**
-You need to import these three .jar files, in the Processing libs
-jne.jar
-gstreamer-java.jar
-video.jar
-
-
-Then: import all of the native .dll (Win)and .dylib (Mac) files that are in these subdirectories. Right now, I have this set up so that we these are in the root project folder, but eventually they should be in the appropriate sub-directory.
-
-*important* choose Package required libraries into generated JAR
-
-** Installing Eclipse Development Environment **
-
-
-** Installing Eclipse Development Environment **
-- First install JRE
-- Then, download and install Eclispe for Java
-- Import GIT repo using these instrucitons
-http://crunchify.com/how-to-configure-bitbucket-git-repository-in-you-eclipse/
-- Setup run/launch configurations
-MIS_ContentManager will read in JSON files for configuration and will work in tandem with other MIS-based applications. It uses the Processing libraries to handle all drawing.
-
-** Current Bugs **
-ControlP5 list box won't issue values after adding items. Try to solve or re-generate control after each one?
-
-** Quick Shortcuts (copy and paste into code) **
-gc.errorLogger.writeLine("error");
-gc.statusLogger.writeLine("status");
+Red LED will be on while we are not logging
+  A momentary switch will begin logging
+  Pressing the momentary switch will stop logging
+  
+  Ideally, we would log to RAM and then flush when the buffer is filled.
+  
+  We are logging to microseconds, 1000 micros = 1 millis
+  
+  Other options would be to overclock, which might give us 2X the data-logging rate
+  However, this is complicated.
+  
+  Also, simply running this with a fan on it, too cool it down might make the CPU faster
+  
+  max # of characters
+  - signal value 0-1023 = 4 charcters
+  - command (,) = 1 character
+  - max unsigned long = 18446744073709551615 = 20
+  - newline = 1 chacter
+  - termination string = 1 char
+  - total = 27 characters, add 1 for safekeeping to make 28
+  
+  sample time on a is about 280 microseconds
+  a faster SD card will have marginal improvements since we are using a RAM buffer and flushing it every 20 lines or so
+  
+  Sample rate ~3500-3600 H
+  i.e. 3500-3600 samples/second
+  Pretty good!!
+  
+  ~ 1.7mb file for 60 seconds
+  60 minutes = 102mb
+  
+  The next issue is that we run out of micros(), so have an overflow problem after about a minute
+  We could fix this in code (best solution)
+  
+  Could also log for a specified amount of time, using a millis() timer
